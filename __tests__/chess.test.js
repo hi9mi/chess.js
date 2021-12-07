@@ -1716,7 +1716,7 @@ describe('Regression Tests', () => {
       expect(chess.history()).toEqual(history)
       expect(chess.header()['Result']).toBe('1/2-1/2')
     });
-  
+
   it('Github Issue #286 - pgn should not generate sloppy moves',
     () => {
       const chess = new Chess()
@@ -1724,3 +1724,75 @@ describe('Regression Tests', () => {
       expect(chess.pgn()).toBe('1. e4 d5 2. Nf3 Nd7 3. Bb5 Nf6 4. O-O')
     });
 });
+
+describe('Check new methods', () => {
+  it('obstacles', () => {
+    const chess = new Chess('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1')
+    let result = chess.putObstacles(['a3', 'e4'])
+
+    expect(result).toBe(true)
+    expect(chess.removeObstacle('e4')).toBe(true)
+    expect(chess.movesWithObstacles({ square: 'a2', verbose: true })).toEqual([])
+
+    result = chess.putObstacles('a3')
+
+    const expected =[{ color: 'w', from: 'a2', to: 'a3', flags: 'n', piece: 'p', san: 'a3' },
+                     { color: 'w', from: 'a2', to: 'a4', flags: 'b', piece: 'p', san: 'a4' }]
+
+    expect(result).toBe(false)
+    expect(chess.removeObstacle('a3')).toBe(true)
+    expect(chess.movesWithObstacles({ square: 'a2', verbose: true })).toEqual(expected)
+
+    result = chess.putObstacles(['a3', 'a9'])
+
+    expect(result).toBe(false)
+    expect(chess.removeObstacle('a3')).toBe(true)
+    expect(chess.movesWithObstacles({ square: 'a2', verbose: true })).toEqual(expected)
+  })
+
+  it('checking piece count in fen, test fen', () => {
+    const chess = new Chess()
+    const validPositions = [
+      '8/8/8/8/8/8/8/8 w - - 0 1',
+      'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
+      'rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1',
+      '1nbqkbn1/pppp1ppp/8/4p3/4P3/8/PPPP1PPP/1NBQKBN1 b - - 1 2',
+      '8/8/8/8/8/8/8/3Q4 w - - 0 1',
+      '3q4/8/8/8/8/8/8/8 b - - 0 1']
+
+    const expected = [{ countPieces: 0, orientation: 'w' },
+                      { countPieces: 32, orientation: 'w' },
+                      { countPieces: 32, orientation: 'b' },
+                      { countPieces: 28, orientation: 'w' },
+                      { countPieces: 1, orientation: 'w' },
+                      { countPieces: 1, orientation: 'b' }]
+
+    const invalidPositions = [
+      /* incomplete FEN string */
+      'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBN w KQkq - 0 1',
+
+      /* bad digit (9)*/
+      'rnbqkbnr/pppppppp/9/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
+
+      /* bad piece (X)*/
+      '1nbqkbn1/pppp1ppX/8/4p3/4P3/8/PPPP1PPP/1NBQKBN1 b - - 1 2',
+
+      /* bad ep square*/
+      'rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e9 0 1',
+    ];
+
+
+    validPositions.forEach((fen, index) => {
+      const expectedPiecesCount = expected[index].countPieces === 0 ? false : expected[index].countPieces
+      const expectedPieceOrientation = expected[index].countPieces === 0 ? false : expected[index].orientation
+
+      expect(chess.checkPiecesNumberInStartFen(fen)).toEqual(expected[index])
+      expect(chess.getPieceCount()).toEqual(expectedPiecesCount)
+      expect(chess.getPieceOrientation()).toEqual(expectedPieceOrientation)
+    })
+
+    invalidPositions.forEach((fen) => {
+      expect(chess.checkPiecesNumberInStartFen(fen)).toBe(false)
+    })
+  })
+})
