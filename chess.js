@@ -681,10 +681,10 @@ export const Chess = function (fen) {
     obstacles = squareArr
     copy_board = [...board]
 
-    for (var i = 0, len = obstacles.length; i < len; i++) {
-      var sq = SQUARE_MAP[obstacles[i]]
+    squareArr.forEach((square, index) => {
+      var sq = SQUARE_MAP[square]
       copy_board[sq] = { type: 'obstacle', color: 'obstacle' }
-    }
+    })
 
     return true
   }
