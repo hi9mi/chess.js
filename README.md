@@ -61,6 +61,91 @@ const chess = new Chess(
 )
 ```
 
+### .putObstacles()
+
+Returns true if passed the valid array of squares or false if passed string as 'a3' or an invalid array of squares.
+
+```js
+const chess = new Chess()
+
+// valid value
+chess.putObstacles(['a3', 'e4'])
+// return true
+
+// invalid value
+chess.putObstacles('a3')
+// return false
+
+// invalid value
+chess.putObstacles(['a3', 'a9'])
+// return false
+```
+
+### .removeObstacle()
+
+Returns true if passed the valid square or false if passed invalid square.
+
+```js
+const chess = new Chess()
+
+// valid value
+chess.removeObstacle('a3')
+// return true
+
+// invalid value
+chess.removeObstacle('a9')
+// return false
+```
+
+### .movesWithObstacles()
+
+Returns a list of legal moves from the current position, considering obstacles. The function takes an optional parameter which controls the single-square move generation and verbosity.
+
+```js
+const chess = new Chess('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1')
+
+// make some obstacles
+chess.putObstacles(['a3', 'h3'])
+
+chess.movesWithObstacles()
+// return [
+//  'b3', 'b4', 'c3',
+//  'c4', 'd3', 'd4',
+//  'e3', 'e4', 'f3',
+//  'f4', 'g3', 'g4',
+//  'Nc3', 'Nf3'
+// ]
+
+chess.movesWithObstacles({ square: 'b1', verbose: true })
+// return [{ color: 'w', from: 'b1', to: 'c3', flags: 'n', piece: 'n', san: 'Nc3' }]
+
+chess.movesWithObstacles({ square: 'a2', verbose: true })
+// return []
+```
+
+### .checkPiecesNumberInStartFen()
+
+Returns the number of pieces and the color of the who moves first if passed valid FEN or false if passed invalid FEN.
+
+```js
+const chess = new Chess()
+
+chess.checkPiecesNumberInStartFen('8/8/8/8/8/8/8/8 w - - 0 1')
+// return { countPieces: 0, orientation: 'w' }
+
+chess.checkPiecesNumberInStartFen('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1')
+// return { countPieces: 32, orientation: 'w' }
+
+chess.checkPiecesNumberInStartFen('1nbqkbn1/pppp1ppp/8/4p3/4P3/8/PPPP1PPP/1NBQKBN1 b - - 1 2')
+// return { countPieces: 28, orientation: 'w' }
+
+chess.checkPiecesNumberInStartFen('8/8/8/8/8/8/8/3Q4 w - - 0 1')
+// return { countPieces: 1, orientation: 'w'
+
+chess.checkPiecesNumberInStartFen('3q4/8/8/8/8/8/8/8 b - - 0 1')
+// return { countPieces: 1, orientation: 'b' }
+```
+
 ### .ascii()
 
 Returns a string containing an ASCII diagram of the current position.
