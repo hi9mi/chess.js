@@ -215,7 +215,7 @@ var Chess = function (fen) {
     load(DEFAULT_POSITION)
   }
 
-  function check_pieces_number_in_start_fen(start_fen) {
+  function check_number_pieces_in_start_fen(start_fen) {
     if (typeof start_fen !== 'string' || !validate_fen(start_fen).valid) {
       return false
     }
@@ -232,21 +232,28 @@ var Chess = function (fen) {
 
     pieces_count = count
 
-    piece_orientation = start_fen.includes(piece_orientation) ? WHITE : BLACK
+    if (start_fen.includes(' w ')) {
+      piece_orientation = WHITE
+    }
 
-    return { countPieces: pieces_count, orientation: piece_orientation }
+    if (start_fen.includes(' b ')) {
+      piece_orientation = BLACK
+    }
+
+    return {
+      startNumberPieces: pieces_count,
+      startOrientation: piece_orientation,
+    }
   }
 
   function get_piece_count() {
     if (pieces_count === 0) return false
-    var countPieces = pieces_count
-    return countPieces
+    return pieces_count
   }
 
   function get_piece_orientation() {
     if (pieces_count === 0) return false
-    var orientation = piece_orientation
-    return orientation
+    return piece_orientation
   }
 
   function load(fen, keep_headers) {
@@ -2194,15 +2201,15 @@ var Chess = function (fen) {
       return remove_obstacle(square)
     },
 
-    checkPiecesNumberInStartFen: function (start_fen) {
-      return check_pieces_number_in_start_fen(start_fen)
+    checkNumberPiecesInStartFen: function (start_fen) {
+      return check_number_pieces_in_start_fen(start_fen)
     },
 
-    getPieceCount: function () {
+    getStartNumberPieces: function () {
       return get_piece_count()
     },
 
-    getPieceOrientation: function () {
+    getStartOrientation: function () {
       return get_piece_orientation()
     },
 
