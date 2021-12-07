@@ -151,6 +151,7 @@ var Chess = function (fen) {
   }
 
   var board = new Array(128)
+  var copy_board = []
   var kings = { w: EMPTY, b: EMPTY }
   var turn = WHITE
   var castling = { w: 0, b: 0 }
@@ -160,6 +161,9 @@ var Chess = function (fen) {
   var history = []
   var header = {}
   var comments = {}
+  var obstacles = []
+  var pieces_count = 0
+  var piece_orientation = WHITE
 
   /* if the user passes in a fen string, load it, else default to
    * starting position
@@ -209,6 +213,40 @@ var Chess = function (fen) {
 
   function reset() {
     load(DEFAULT_POSITION)
+  }
+
+  function check_pieces_number_in_start_fen(start_fen) {
+    if (typeof start_fen !== 'string' || !validate_fen(start_fen).valid) {
+      return false
+    }
+
+    var tokens = start_fen.split(/\s+/)
+    var position = tokens[0]
+    var count = 0
+    for (var i = 0; i < position.length; i++) {
+      var piece = position.charAt(i)
+      if (piece !== '/' && !is_digit(piece)) {
+        count++
+      }
+    }
+
+    pieces_count = count
+
+    piece_orientation = start_fen.includes(piece_orientation) ? WHITE : BLACK
+
+    return { countPieces: pieces_count, orientation: piece_orientation }
+  }
+
+  function get_piece_count() {
+    if (pieces_count === 0) return false
+    var countPieces = pieces_count
+    return countPieces
+  }
+
+  function get_piece_orientation() {
+    if (pieces_count === 0) return false
+    var orientation = piece_orientation
+    return orientation
   }
 
   function load(fen, keep_headers) {
@@ -480,6 +518,37 @@ var Chess = function (fen) {
     return true
   }
 
+  function put_obstacles(squareArr) {
+    if (
+      typeof squareArr === 'undefined' ||
+      !Array.isArray(squareArr) ||
+      squareArr.find((sq) => !(sq in SQUARES))
+    ) {
+      obstacles = []
+      copy_board = [...board]
+      return false
+    }
+
+    obstacles = squareArr
+    copy_board = [...board]
+
+    squareArr.forEach((square, index) => {
+      var sq = SQUARES[square]
+      copy_board[sq] = { type: 'obstacle', color: 'obstacle' }
+    })
+
+    return true
+  }
+
+  function remove_obstacle(square) {
+    if (typeof square !== 'string' || !(square in SQUARES)) return false
+
+    obstacles = obstacles.filter((obstacle) => obstacle !== square)
+    copy_board[SQUARES[square]] = null
+
+    return true
+  }
+
   function remove(square) {
     var piece = get(square)
     board[SQUARES[square]] = null
@@ -531,8 +600,8 @@ var Chess = function (fen) {
     }
 
     var moves = []
-    var us = turn
-    var them = swap_color(us)
+    var us = pieces_count === 1 ? piece_orientation : turn
+    var them = pieces_count === 1 ? piece_orientation : swap_color(us)
     var second_rank = { b: RANK_7, w: RANK_2 }
 
     var first_sq = SQUARES.a8
@@ -676,6 +745,201 @@ var Chess = function (fen) {
       make_move(moves[i])
       if (!king_attacked(us)) {
         legal_moves.push(moves[i])
+      }
+      undo_move()
+    }
+
+    return legal_moves
+  }
+
+  function generate_moves_with_obstacles(options) {
+    function add_move(board, moves, from, to, flags) {
+      /* if pawn promotion */
+      var obstacle = obstacles.find((obstacle) => SQUARES[obstacle] === to)
+      if (!obstacle) {
+        if (
+          board[from].type === PAWN &&
+          (rank(to) === RANK_8 || rank(to) === RANK_1)
+        ) {
+          var pieces = [QUEEN, ROOK, BISHOP, KNIGHT]
+          for (var i = 0, len = pieces.length; i < len; i++) {
+            moves.push(build_move(board, from, to, flags, pieces[i]))
+          }
+        } else {
+          moves.push(build_move(board, from, to, flags))
+        }
+      }
+    }
+
+    put_obstacles(obstacles)
+
+    var moves = []
+    var copy_moves = []
+    var us = pieces_count === 1 ? piece_orientation : turn
+    var them = pieces_count === 1 ? piece_orientation : swap_color(us)
+    var second_rank = { b: RANK_7, w: RANK_2 }
+
+    var first_sq = SQUARES.a8
+    var last_sq = SQUARES.h1
+    var single_square = false
+
+    /* do we want legal moves? */
+    var legal =
+      typeof options !== 'undefined' && 'legal' in options
+        ? options.legal
+        : true
+
+    var piece_type =
+      typeof options !== 'undefined' &&
+      'piece' in options &&
+      typeof options.piece === 'string'
+        ? options.piece.toLowerCase()
+        : true
+
+    /* are we generating moves for a single square? */
+    if (typeof options !== 'undefined' && 'square' in options) {
+      if (options.square in SQUARES) {
+        first_sq = last_sq = SQUARES[options.square]
+        single_square = true
+      } else {
+        /* invalid square */
+        return []
+      }
+    }
+
+    for (var i = first_sq; i <= last_sq; i++) {
+      /* did we run off the end of the board */
+      if (i & 0x88) {
+        i += 7
+        continue
+      }
+
+      var piece = copy_board[i]
+
+      if (piece == null || piece.color !== us) {
+        continue
+      }
+
+      if (piece.type === PAWN && (piece_type === true || piece_type === PAWN)) {
+        /* single square, non-capturing */
+        var square = i + PAWN_OFFSETS[us][0]
+
+        if (copy_board[square] == null) {
+          add_move(copy_board, copy_moves, i, square, BITS.NORMAL)
+          add_move(board, moves, i, square, BITS.NORMAL)
+          /* double square */
+          var square = i + PAWN_OFFSETS[us][1]
+          if (second_rank[us] === rank(i) && copy_board[square] == null) {
+            add_move(copy_board, copy_moves, i, square, BITS.BIG_PAWN)
+            add_move(board, moves, i, square, BITS.BIG_PAWN)
+          }
+        }
+
+        /* pawn captures */
+        for (j = 2; j < 4; j++) {
+          var square = i + PAWN_OFFSETS[us][j]
+          if (square & 0x88) continue
+
+          if (copy_board[square] != null && copy_board[square].color === them) {
+            add_move(copy_board, copy_moves, i, square, BITS.CAPTURE)
+            add_move(board, moves, i, square, BITS.CAPTURE)
+          } else if (square === ep_square) {
+            add_move(copy_board, copy_moves, i, ep_square, BITS.EP_CAPTURE)
+            add_move(board, moves, i, ep_square, BITS.EP_CAPTURE)
+          }
+        }
+      } else if (piece_type === true || piece_type === piece.type) {
+        for (var j = 0, len = PIECE_OFFSETS[piece.type].length; j < len; j++) {
+          var offset = PIECE_OFFSETS[piece.type][j]
+          var square = i
+
+          while (true) {
+            square += offset
+            if (square & 0x88) break
+
+            if (copy_board[square] == null) {
+              add_move(copy_board, copy_moves, i, square, BITS.NORMAL)
+              add_move(board, moves, i, square, BITS.NORMAL)
+            } else {
+              if (copy_board[square].color === us) break
+              add_move(copy_board, copy_moves, i, square, BITS.CAPTURE)
+              add_move(board, moves, i, square, BITS.CAPTURE)
+              break
+            }
+
+            /* break, if knight or king */
+            if (piece.type === 'n' || piece.type === 'k') break
+          }
+        }
+      }
+    }
+
+    /* check for castling if: a) we're generating all moves, or b) we're doing
+     * single square move generation on the king's square
+     */
+    if (piece_type === true || piece_type === KING) {
+      if (!single_square || last_sq === kings[us]) {
+        /* king-side castling */
+
+        if (castling[us] & BITS.KSIDE_CASTLE) {
+          var castling_from = kings[us]
+          var castling_to = castling_from + 2
+          if (
+            copy_board[castling_from + 1] == null &&
+            copy_board[castling_to] == null &&
+            !attacked(them, kings[us]) &&
+            !attacked(them, castling_from + 1) &&
+            !attacked(them, castling_to)
+          ) {
+            add_move(
+              copy_board,
+              copy_moves,
+              kings[us],
+              castling_to,
+              BITS.KSIDE_CASTLE
+            )
+            add_move(board, moves, kings[us], castling_to, BITS.KSIDE_CASTLE)
+          }
+        }
+
+        /* queen-side castling */
+        if (castling[us] & BITS.QSIDE_CASTLE) {
+          var castling_from = kings[us]
+          var castling_to = castling_from - 2
+
+          if (
+            copy_board[castling_from - 1] == null &&
+            copy_board[castling_from - 2] == null &&
+            copy_board[castling_from - 3] == null &&
+            !attacked(them, kings[us]) &&
+            !attacked(them, castling_from - 1) &&
+            !attacked(them, castling_to)
+          ) {
+            add_move(
+              copy_board,
+              copy_moves,
+              kings[us],
+              castling_to,
+              BITS.QSIDE_CASTLE
+            )
+            add_move(board, moves, kings[us], castling_to, BITS.QSIDE_CASTLE)
+          }
+        }
+      }
+    }
+
+    /* return all pseudo-legal moves (this includes moves that allow the king
+     * to be captured)
+     */
+    if (!legal) {
+      return moves
+    }
+    /* filter out illegal moves */
+    var legal_moves = []
+    for (var i = 0, len = copy_moves.length; i < len; i++) {
+      make_move(moves[i])
+      if (!king_attacked(us)) {
+        legal_moves.push(copy_moves[i])
       }
       undo_move()
     }
@@ -1261,6 +1525,26 @@ var Chess = function (fen) {
   }
 
   /* pretty = external move object */
+  function make_pretty_with_obstacles(ugly_move) {
+    var move = clone(ugly_move)
+
+    move.san = move_to_san(move, generate_moves_with_obstacles({ legal: true }))
+
+    move.to = algebraic(move.to)
+    move.from = algebraic(move.from)
+
+    var flags = ''
+
+    for (var flag in BITS) {
+      if (BITS[flag] & move.flags) {
+        flags += FLAGS[flag]
+      }
+    }
+    move.flags = flags
+
+    return move
+  }
+
   function make_pretty(ugly_move) {
     var move = clone(ugly_move)
     move.san = move_to_san(move, generate_moves({ legal: true }))
@@ -1528,9 +1812,7 @@ var Chess = function (fen) {
         }
 
         move_string =
-          move_string +
-          ' ' +
-          move_to_san(move, generate_moves({ legal: true }))
+          move_string + ' ' + move_to_san(move, generate_moves({ legal: true }))
         make_move(move)
       }
 
@@ -1878,6 +2160,50 @@ var Chess = function (fen) {
 
     clear: function () {
       return clear()
+    },
+
+    putObstacles: function (squareArr) {
+      return put_obstacles(squareArr)
+    },
+
+    movesWithObstacles: function (options) {
+      var ugly_moves = generate_moves_with_obstacles(options)
+      var moves = []
+
+      for (var i = 0, len = ugly_moves.length; i < len; i++) {
+        if (
+          typeof options !== 'undefined' &&
+          'verbose' in options &&
+          options.verbose
+        ) {
+          moves.push(make_pretty_with_obstacles(ugly_moves[i]))
+        } else {
+          moves.push(
+            move_to_san(
+              ugly_moves[i],
+              generate_moves_with_obstacles({ legal: true })
+            )
+          )
+        }
+      }
+
+      return moves
+    },
+
+    removeObstacle: function (square) {
+      return remove_obstacle(square)
+    },
+
+    checkPiecesNumberInStartFen: function (start_fen) {
+      return check_pieces_number_in_start_fen(start_fen)
+    },
+
+    getPieceCount: function () {
+      return get_piece_count()
+    },
+
+    getPieceOrientation: function () {
+      return get_piece_orientation()
     },
 
     put: function (piece, square) {
