@@ -123,27 +123,68 @@ chess.movesWithObstacles({ square: 'a2', verbose: true })
 // return []
 ```
 
-### .checkPiecesNumberInStartFen()
+### .checkNumberPiecesInStartFen()
 
 Returns the number of pieces and the color of the who moves first if passed valid FEN or false if passed invalid FEN.
 
 ```js
 const chess = new Chess()
 
-chess.checkPiecesNumberInStartFen('8/8/8/8/8/8/8/8 w - - 0 1')
-// return { countPieces: 0, orientation: 'w' }
+chess.checkNumberPiecesInStartFen('8/8/8/8/8/8/8/8 w - - 0 1')
+// return { startNumberPieces: 0, startOrientation: 'w' }
 
-chess.checkPiecesNumberInStartFen('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1')
-// return { countPieces: 32, orientation: 'w' }
+chess.checkNumberPiecesInStartFen('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1')
+// return { startNumberPieces: 32, startOrientation: 'w' }
 
-chess.checkPiecesNumberInStartFen('1nbqkbn1/pppp1ppp/8/4p3/4P3/8/PPPP1PPP/1NBQKBN1 b - - 1 2')
-// return { countPieces: 28, orientation: 'w' }
+chess.checkNumberPiecesInStartFen('1nbqkbn1/pppp1ppp/8/4p3/4P3/8/PPPP1PPP/1NBQKBN1 b - - 1 2')
+// return { startNumberPieces: 28, startOrientation: 'w' }
 
-chess.checkPiecesNumberInStartFen('8/8/8/8/8/8/8/3Q4 w - - 0 1')
-// return { countPieces: 1, orientation: 'w'
+chess.checkNumberPiecesInStartFen('8/8/8/8/8/8/8/3Q4 w - - 0 1')
+// return { startNumberPieces: 1, startOrientation: 'w'
 
-chess.checkPiecesNumberInStartFen('3q4/8/8/8/8/8/8/8 b - - 0 1')
-// return { countPieces: 1, orientation: 'b' }
+chess.checkNumberPiecesInStartFen('3q4/8/8/8/8/8/8/8 b - - 0 1')
+// return { startNumberPieces: 1, startOrientation: 'b' }
+```
+
+### .getStartNumberPieces()
+
+Returns the number of pieces if `checkNumberPiecesInStartFen (start_fen)` was used or false if
+ `checkNumberPiecesInStartFen(start_fen)` was not used.
+
+```js
+const chess = new Chess()
+
+chess.checkNumberPiecesInStartFen('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1')
+// return { initialNumberPieces: 32, startOrientation: 'w' }
+
+chess.getStartNumberPieces()
+// return 32
+
+/* ----------------------------------------------------------- */
+const chess = new Chess()
+
+chess.getStartNumberPieces()
+// return false
+```
+
+### .getStartOrientation()
+
+Returns the start orientation if `checkNumberPiecesInStartFen (start_fen)` was used or false if `checkNumberPiecesInStartFen(start_fen)` was not used.
+
+```js
+const chess = new Chess()
+
+chess.checkNumberPiecesInStartFen('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1')
+// return { initialNumberPieces: 32, startOrientation: 'w' }
+
+chess.getStartOrientation()
+// return 'w'
+
+/* ----------------------------------------------------------- */
+const chess = new Chess()
+
+chess.getStartOrientation()
+// return false
 ```
 
 ### .ascii()
