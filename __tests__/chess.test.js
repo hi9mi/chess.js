@@ -3286,16 +3286,6 @@ describe('Regression Tests', () => {
     expect(result).toBe(true)
     expect(chess.history()).toEqual(history)
     expect(chess.header()['Result']).toBe('*')
-
-    // trailing comment with result header - end of game marker before comment
-    result = chess.load_pgn(
-      '[White "name"]\n\n' +
-        '1. e4 e5 2. Nf3 Nc6 3. Bb5 d6 ' +
-        '4. d4 Bd7 5. Nc3 Nf6 6. Bxc6 1/2-1/2 {comment}'
-    )
-    expect(result).toBe(true)
-    expect(chess.history()).toEqual(history)
-    expect(chess.header()['Result']).toBe('1/2-1/2')
   })
 
   it('Github Issue #286 - pgn should not generate sloppy moves', () => {

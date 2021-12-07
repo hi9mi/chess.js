@@ -669,9 +669,7 @@ export const Chess = function (fen) {
     if (
       typeof squareArr === 'undefined' ||
       !Array.isArray(squareArr) ||
-      squareArr.find(function (sq) {
-        return !(sq in SQUARE_MAP)
-      })
+      squareArr.find((sq) => !(sq in SQUARE_MAP))
     ) {
       obstacles = []
       copy_board = [...board]
@@ -692,9 +690,7 @@ export const Chess = function (fen) {
   function remove_obstacle(square) {
     if (typeof square !== 'string' || !(square in SQUARE_MAP)) return false
 
-    obstacles = obstacles.filter(function (obstacle) {
-      return obstacle !== square
-    })
+    obstacles = obstacles.filter((obstacle) => obstacle !== square)
     copy_board[SQUARE_MAP[square]] = null
 
     return true
@@ -911,10 +907,7 @@ export const Chess = function (fen) {
   function generate_moves_with_obstacles(options) {
     function add_move(board, moves, from, to, flags) {
       /* if pawn promotion */
-      var obstacle = obstacles.find(function (obstacle) {
-        return SQUARE_MAP[obstacle] === to
-      })
-
+      var obstacle = obstacles.find((obstacle) => SQUARE_MAP[obstacle] === to)
       if (!obstacle) {
         if (
           board[from].type === PAWN &&
