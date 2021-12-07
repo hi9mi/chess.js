@@ -1760,12 +1760,12 @@ describe('Check new methods', () => {
       '8/8/8/8/8/8/8/3Q4 w - - 0 1',
       '3q4/8/8/8/8/8/8/8 b - - 0 1']
 
-    const expected = [{ countPieces: 0, orientation: 'w' },
-                      { countPieces: 32, orientation: 'w' },
-                      { countPieces: 32, orientation: 'b' },
-                      { countPieces: 28, orientation: 'w' },
-                      { countPieces: 1, orientation: 'w' },
-                      { countPieces: 1, orientation: 'b' }]
+    const expected = [{ startNumberPieces: 0, startOrientation: 'w' },
+                      { startNumberPieces: 32, startOrientation: 'w' },
+                      { startNumberPieces: 32, startOrientation: 'b' },
+                      { startNumberPieces: 28, startOrientation: 'b' },
+                      { startNumberPieces: 1, startOrientation: 'w' },
+                      { startNumberPieces: 1, startOrientation: 'b' }]
 
     const invalidPositions = [
       /* incomplete FEN string */
@@ -1783,16 +1783,16 @@ describe('Check new methods', () => {
 
 
     validPositions.forEach((fen, index) => {
-      const expectedPiecesCount = expected[index].countPieces === 0 ? false : expected[index].countPieces
-      const expectedPieceOrientation = expected[index].countPieces === 0 ? false : expected[index].orientation
+      const expectedPiecesCount = expected[index].startNumberPieces === 0 ? false : expected[index].startNumberPieces
+      const expectedPieceOrientation = expected[index].startNumberPieces === 0 ? false : expected[index].startOrientation
 
-      expect(chess.checkPiecesNumberInStartFen(fen)).toEqual(expected[index])
-      expect(chess.getPieceCount()).toEqual(expectedPiecesCount)
-      expect(chess.getPieceOrientation()).toEqual(expectedPieceOrientation)
+      expect(chess.checkNumberPiecesInStartFen(fen)).toEqual(expected[index])
+      expect(chess.getStartNumberPieces()).toEqual(expectedPiecesCount)
+      expect(chess.getStartOrientation()).toEqual(expectedPieceOrientation)
     })
 
     invalidPositions.forEach((fen) => {
-      expect(chess.checkPiecesNumberInStartFen(fen)).toBe(false)
+      expect(chess.checkNumberPiecesInStartFen(fen)).toBe(false)
     })
   })
 })
