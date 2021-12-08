@@ -144,6 +144,10 @@ chess.checkNumberPiecesInStartFen('8/8/8/8/8/8/8/3Q4 w - - 0 1')
 
 chess.checkNumberPiecesInStartFen('3q4/8/8/8/8/8/8/8 b - - 0 1')
 // return { startNumberPieces: 1, startOrientation: 'b' }
+
+// incomplete FEN string
+chess.checkNumberPiecesInStartFen('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBN w KQkq - 0 1')
+// return false
 ```
 
 ### .getStartNumberPieces()
@@ -154,17 +158,14 @@ Returns the number of pieces if `checkNumberPiecesInStartFen (start_fen)` was us
 ```js
 const chess = new Chess()
 
+chess.getStartNumberPieces()
+// return false
+
+// call func checkNumberPiecesInStartFen(start_fen)
 chess.checkNumberPiecesInStartFen('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1')
-// return { initialNumberPieces: 32, startOrientation: 'w' }
 
 chess.getStartNumberPieces()
 // return 32
-
-/* ----------------------------------------------------------- */
-const chess = new Chess()
-
-chess.getStartNumberPieces()
-// return false
 ```
 
 ### .getStartOrientation()
@@ -174,17 +175,14 @@ Returns the start orientation if `checkNumberPiecesInStartFen (start_fen)` was u
 ```js
 const chess = new Chess()
 
+chess.getStartOrientation()
+// return false
+
+// call func checkNumberPiecesInStartFen(start_fen)
 chess.checkNumberPiecesInStartFen('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1')
-// return { initialNumberPieces: 32, startOrientation: 'w' }
 
 chess.getStartOrientation()
 // return 'w'
-
-/* ----------------------------------------------------------- */
-const chess = new Chess()
-
-chess.getStartOrientation()
-// return false
 ```
 
 ### .ascii()
