@@ -1,3 +1,5 @@
+ this is a customized version [chess.js](https://github.com/jhlywa/chess.js) for chesstery
+
 # chess.js
 
 [![Build Status](https://travis-ci.org/jhlywa/chess.js.svg?branch=master)](https://travis-ci.org/jhlywa/chess.js)
@@ -14,10 +16,10 @@ To install the stable version:
 
 ```
 # NPM
-npm install chess.js
+npm install chesstery-chess.js
 
 # Yarn
-yarn add chess.js
+yarn add chesstery-chess.js
 ```
 
 ## Example Code
