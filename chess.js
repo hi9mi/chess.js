@@ -285,7 +285,7 @@ var Chess = function (fen) {
       }
     }
 
-    turn = tokens[1]
+    turn = pieces_count === 1 ? piece_orientation : tokens[1]
 
     if (tokens[2].indexOf('K') > -1) {
       castling.w |= BITS.KSIDE_CASTLE
@@ -529,7 +529,9 @@ var Chess = function (fen) {
     if (
       typeof squareArr === 'undefined' ||
       !Array.isArray(squareArr) ||
-      squareArr.find((sq) => !(sq in SQUARES))
+      squareArr.find(function (sq) {
+        return !(sq in SQUARES)
+      })
     ) {
       obstacles = []
       copy_board = [...board]
@@ -539,10 +541,10 @@ var Chess = function (fen) {
     obstacles = squareArr
     copy_board = [...board]
 
-    squareArr.forEach((square, index) => {
-      var sq = SQUARES[square]
+    for (var i = 0, len = obstacles.length; i < len; i++) {
+      var sq = SQUARES[obstacles[i]]
       copy_board[sq] = { type: 'obstacle', color: 'obstacle' }
-    })
+    }
 
     return true
   }
@@ -550,7 +552,9 @@ var Chess = function (fen) {
   function remove_obstacle(square) {
     if (typeof square !== 'string' || !(square in SQUARES)) return false
 
-    obstacles = obstacles.filter((obstacle) => obstacle !== square)
+    obstacles = obstacles.filter(function (obstacle) {
+      return obstacle !== square
+    })
     copy_board[SQUARES[square]] = null
 
     return true
@@ -570,7 +574,7 @@ var Chess = function (fen) {
 
   function build_move(board, from, to, flags, promotion) {
     var move = {
-      color: turn,
+      color: pieces_count === 1 ? piece_orientation : turn,
       from: from,
       to: to,
       flags: flags,
@@ -647,6 +651,11 @@ var Chess = function (fen) {
       }
 
       var piece = board[i]
+
+      if (pieces_count === 1 && piece && 'color' in piece) {
+        piece.color = piece_orientation
+      }
+
       if (piece == null || piece.color !== us) {
         continue
       }
@@ -762,7 +771,10 @@ var Chess = function (fen) {
   function generate_moves_with_obstacles(options) {
     function add_move(board, moves, from, to, flags) {
       /* if pawn promotion */
-      var obstacle = obstacles.find((obstacle) => SQUARES[obstacle] === to)
+      var obstacle = obstacles.find(function (obstacle) {
+        return SQUARES[obstacle] === to
+      })
+
       if (!obstacle) {
         if (
           board[from].type === PAWN &&
@@ -822,6 +834,10 @@ var Chess = function (fen) {
       }
 
       var piece = copy_board[i]
+
+      if (pieces_count === 1 && piece && 'color' in piece) {
+        piece.color = piece_orientation
+      }
 
       if (piece == null || piece.color !== us) {
         continue
@@ -1167,8 +1183,8 @@ var Chess = function (fen) {
   }
 
   function make_move(move) {
-    var us = turn
-    var them = swap_color(us)
+    var us = pieces_count === 1 ? piece_orientation : turn
+    var them = pieces_count === 1 ? piece_orientation : swap_color(us)
     push(move)
 
     board[move.to] = board[move.from]
@@ -1258,7 +1274,7 @@ var Chess = function (fen) {
     if (turn === BLACK) {
       move_number++
     }
-    turn = swap_color(turn)
+    turn = pieces_count === 1 ? piece_orientation : swap_color(turn)
   }
 
   function undo_move() {
@@ -1275,8 +1291,8 @@ var Chess = function (fen) {
     half_moves = old.half_moves
     move_number = old.move_number
 
-    var us = turn
-    var them = swap_color(turn)
+    var us = pieces_count === 1 ? piece_orientation : turn
+    var them = pieces_count === 1 ? piece_orientation : swap_color(turn)
 
     board[move.from] = board[move.to]
     board[move.from].type = move.piece // to undo any promotions
