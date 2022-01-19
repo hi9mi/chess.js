@@ -871,7 +871,10 @@ var Chess = function (fen) {
             add_move(board, moves, i, ep_square, BITS.EP_CAPTURE)
           }
         }
-      } else if (piece_type === true || piece_type === piece.type) {
+      } else if (
+        (piece_type === true || piece_type === piece.type) &&
+        piece.type !== 'obstacle'
+      ) {
         for (var j = 0, len = PIECE_OFFSETS[piece.type].length; j < len; j++) {
           var offset = PIECE_OFFSETS[piece.type][j]
           var square = i
