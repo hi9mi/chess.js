@@ -1728,9 +1728,16 @@ describe('Regression Tests', () => {
 describe('Check new methods', () => {
   it('obstacles', () => {
     const chess = new Chess('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1')
-    let result = chess.putObstacles(['a3', 'e4'])
+    let result = chess.putObstacles(['a3', 'e4', 'c4', 'd5', 'e5', 'f4'])
 
     expect(result).toBe(true)
+    expect(chess.movesWithObstacles()).toEqual([
+      'b3',  'b4',  'c3',
+      'd3',  'd4',  'e3',
+      'f3',  'g3',  'g4',
+      'h3',  'h4',  'Nc3',
+      'Nf3', 'Nh3'
+    ])
     expect(chess.removeObstacle('e4')).toBe(true)
     expect(chess.movesWithObstacles({ square: 'a2', verbose: true })).toEqual([])
 
