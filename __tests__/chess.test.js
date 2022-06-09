@@ -1,6 +1,15 @@
-if (typeof require != 'undefined') {
-  var Chess = require('../chess').Chess
-}
+import {
+  Chess,
+  WHITE,
+  BLACK,
+  PAWN,
+  KNIGHT,
+  BISHOP,
+  ROOK,
+  KING,
+  QUEEN,
+  SQUARES,
+} from '../chess.js'
 
 describe('Perft', () => {
   const perfts = [
@@ -506,38 +515,38 @@ describe('Get/Put/Remove', () => {
   const positions = [
     {
       pieces: {
-        a7: { type: chess.PAWN, color: chess.WHITE },
-        b7: { type: chess.PAWN, color: chess.BLACK },
-        c7: { type: chess.KNIGHT, color: chess.WHITE },
-        d7: { type: chess.KNIGHT, color: chess.BLACK },
-        e7: { type: chess.BISHOP, color: chess.WHITE },
-        f7: { type: chess.BISHOP, color: chess.BLACK },
-        g7: { type: chess.ROOK, color: chess.WHITE },
-        h7: { type: chess.ROOK, color: chess.BLACK },
-        a6: { type: chess.QUEEN, color: chess.WHITE },
-        b6: { type: chess.QUEEN, color: chess.BLACK },
-        a4: { type: chess.KING, color: chess.WHITE },
-        h4: { type: chess.KING, color: chess.BLACK },
+        a7: { type: PAWN, color: WHITE },
+        b7: { type: PAWN, color: BLACK },
+        c7: { type: KNIGHT, color: WHITE },
+        d7: { type: KNIGHT, color: BLACK },
+        e7: { type: BISHOP, color: WHITE },
+        f7: { type: BISHOP, color: BLACK },
+        g7: { type: ROOK, color: WHITE },
+        h7: { type: ROOK, color: BLACK },
+        a6: { type: QUEEN, color: WHITE },
+        b6: { type: QUEEN, color: BLACK },
+        a4: { type: KING, color: WHITE },
+        h4: { type: KING, color: BLACK },
       },
       should_pass: true,
     },
 
     {
-      pieces: { a7: { type: 'z', color: chess.WHTIE } }, // bad piece
+      pieces: { a7: { type: 'z', color: WHITE } }, // bad piece
       should_pass: false,
     },
 
     {
-      pieces: { j4: { type: chess.PAWN, color: chess.WHTIE } }, // bad square
+      pieces: { j4: { type: PAWN, color: WHITE } }, // bad square
       should_pass: false,
     },
 
     /* disallow two kings (black) */
     {
       pieces: {
-        a7: { type: chess.KING, color: chess.BLACK },
-        h2: { type: chess.KING, color: chess.WHITE },
-        a8: { type: chess.KING, color: chess.BLACK },
+        a7: { type: KING, color: BLACK },
+        h2: { type: KING, color: WHITE },
+        a8: { type: KING, color: BLACK },
       },
       should_pass: false,
     },
@@ -545,9 +554,9 @@ describe('Get/Put/Remove', () => {
     /* disallow two kings (white) */
     {
       pieces: {
-        a7: { type: chess.KING, color: chess.BLACK },
-        h2: { type: chess.KING, color: chess.WHITE },
-        h1: { type: chess.KING, color: chess.WHITE },
+        a7: { type: KING, color: BLACK },
+        h2: { type: KING, color: WHITE },
+        h1: { type: KING, color: WHITE },
       },
       should_pass: false,
     },
@@ -555,9 +564,9 @@ describe('Get/Put/Remove', () => {
     /* allow two kings if overwriting the exact same square */
     {
       pieces: {
-        a7: { type: chess.KING, color: chess.BLACK },
-        h2: { type: chess.KING, color: chess.WHITE },
-        h2: { type: chess.KING, color: chess.WHITE },
+        a7: { type: KING, color: BLACK },
+        h2: { type: KING, color: WHITE },
+        h2: { type: KING, color: WHITE },
       },
       should_pass: true,
     },
@@ -576,8 +585,8 @@ describe('Get/Put/Remove', () => {
       /* iterate over every square to make sure get returns the proper
        * piece values/color
        */
-      for (let j = 0; j < chess.SQUARES.length; j++) {
-        const square = chess.SQUARES[j]
+      for (let j = 0; j < SQUARES.length; j++) {
+        const square = SQUARES[j]
         if (!(square in position.pieces)) {
           if (chess.get(square)) {
             passed = false
@@ -600,8 +609,8 @@ describe('Get/Put/Remove', () => {
 
       if (passed) {
         /* remove the pieces */
-        for (let j = 0; j < chess.SQUARES.length; j++) {
-          const square = chess.SQUARES[j]
+        for (let j = 0; j < SQUARES.length; j++) {
+          const square = SQUARES[j]
           const piece = chess.remove(square)
           if (!(square in position.pieces) && piece) {
             passed = false
@@ -1238,6 +1247,47 @@ describe('Load PGN', () => {
       expect: true,
       sloppy: true,
     },
+
+    {
+      // strict parser - FEN requires a corresponding SetUp tag
+      fen: '1n1Rkb1r/p4ppp/4q3/4p1B1/4P3/8/PPP2PPP/2K5 b k - 1 17',
+      pgn: [
+        '[White "Paul Morphy"]',
+        '[Black "Duke Karl / Count Isouard"]',
+        '[FEN "1n2kb1r/p4ppp/4q3/4p1B1/4P3/8/PPP2PPP/2KR4 w k - 0 17"]',
+        '',
+        '17.Rd8# 1-0',
+      ],
+      expect: false,
+    },
+
+    {
+      // sloppy parser - FEN doesn't need a SetUp tag
+      fen: '1n1Rkb1r/p4ppp/4q3/4p1B1/4P3/8/PPP2PPP/2K5 b k - 1 17',
+      pgn: [
+        '[White "Paul Morphy"]',
+        '[Black "Duke Karl / Count Isouard"]',
+        '[FEN "1n2kb1r/p4ppp/4q3/4p1B1/4P3/8/PPP2PPP/2KR4 w k - 0 17"]',
+        '',
+        '17.Rd8# 1-0',
+      ],
+      sloppy: true,
+      expect: true,
+    },
+
+    {
+      // sloppy parser - FEN case doesn't matter
+      fen: '1n1Rkb1r/p4ppp/4q3/4p1B1/4P3/8/PPP2PPP/2K5 b k - 1 17',
+      pgn: [
+        '[White "Paul Morphy"]',
+        '[Black "Duke Karl / Count Isouard"]',
+        '[feN "1n2kb1r/p4ppp/4q3/4p1B1/4P3/8/PPP2PPP/2KR4 w k - 0 17"]',
+        '',
+        '17.Rd8# 1-0',
+      ],
+      sloppy: true,
+      expect: true,
+    },
   ]
 
   const newline_chars = ['\n', '<br />', '\r\n', 'BLAH']
@@ -1276,7 +1326,7 @@ describe('Load PGN', () => {
   })
 
   // special case dirty file containing a mix of \n and \r\n
-  it('dirty pgn', () => {
+  it('dirty pgn - newlines', () => {
     const pgn =
       '[Event "Reykjavik WCh"]\n' +
       '[Site "Reykjavik WCh"]\n' +
@@ -1291,6 +1341,37 @@ describe('Load PGN', () => {
       '[BlackElo "?"]\n' +
       '[PlyCount "81"]\n' +
       '\r\n' +
+      '1. c4 e6 2. Nf3 d5 3. d4 Nf6 4. Nc3 Be7 5. Bg5 O-O 6. e3 h6\n' +
+      '7. Bh4 b6 8. cxd5 Nxd5 9. Bxe7 Qxe7 10. Nxd5 exd5 11. Rc1 Be6\n' +
+      '12. Qa4 c5 13. Qa3 Rc8 14. Bb5 a6 15. dxc5 bxc5 16. O-O Ra7\n' +
+      '17. Be2 Nd7 18. Nd4 Qf8 19. Nxe6 fxe6 20. e4 d4 21. f4 Qe7\r\n' +
+      '22. e5 Rb8 23. Bc4 Kh8 24. Qh3 Nf8 25. b3 a5 26. f5 exf5\n' +
+      '27. Rxf5 Nh7 28. Rcf1 Qd8 29. Qg3 Re7 30. h4 Rbb7 31. e6 Rbc7\n' +
+      '32. Qe5 Qe8 33. a4 Qd8 34. R1f2 Qe8 35. R2f3 Qd8 36. Bd3 Qe8\n' +
+      '37. Qe4 Nf6 38. Rxf6 gxf6 39. Rxf6 Kg8 40. Bc4 Kh8 41. Qf4 1-0\n'
+
+    const result = chess.load_pgn(pgn, { newline_char: '\r?\n' })
+    expect(result).toBe(true)
+
+    expect(chess.load_pgn(pgn)).toBe(true)
+    expect(chess.pgn().match(/^\[\[/) === null).toBe(true)
+  })
+
+  it('dirty pgn - whitespace', () => {
+    const pgn =
+      '    \t   [Event"Reykjavik WCh"]\n' +
+      '[Site "Reykjavik WCh"]       \n' +
+      '[Date "1972.01.07"]\n' +
+      '[EventDate "?"]\n' +
+      '[Round "6"]\n' +
+      '[Result "1-0"]\n' +
+      '[White "Robert James Fischer"]\r\n' +
+      '[Black "Boris Spassky"]\n' +
+      '[ECO "D59"]\n' +
+      '[WhiteElo "?"]\n' +
+      '[BlackElo "?"]\n' +
+      '[PlyCount "81"]                \n' +
+      '            \r\n' +
       '1. c4 e6 2. Nf3 d5 3. d4 Nf6 4. Nc3 Be7 5. Bg5 O-O 6. e3 h6\n' +
       '7. Bh4 b6 8. cxd5 Nxd5 9. Bxe7 Qxe7 10. Nxd5 exd5 11. Rc1 Be6\n' +
       '12. Qa4 c5 13. Qa3 Rc8 14. Bb5 a6 15. dxc5 bxc5 16. O-O Ra7\n' +
@@ -1656,6 +1737,10 @@ describe('Validate FEN', () => {
     },
     {
       fen: 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 x',
+      error_number: 2,
+    },
+    {
+      fen: 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 ',
       error_number: 2,
     },
     {
@@ -2807,48 +2892,48 @@ describe('Board Tests', () => {
       fen: 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
       board: [
         [
-          { type: 'r', color: 'b' },
-          { type: 'n', color: 'b' },
-          { type: 'b', color: 'b' },
-          { type: 'q', color: 'b' },
-          { type: 'k', color: 'b' },
-          { type: 'b', color: 'b' },
-          { type: 'n', color: 'b' },
-          { type: 'r', color: 'b' },
+          { square: 'a8', type: 'r', color: 'b' },
+          { square: 'b8', type: 'n', color: 'b' },
+          { square: 'c8', type: 'b', color: 'b' },
+          { square: 'd8', type: 'q', color: 'b' },
+          { square: 'e8', type: 'k', color: 'b' },
+          { square: 'f8', type: 'b', color: 'b' },
+          { square: 'g8', type: 'n', color: 'b' },
+          { square: 'h8', type: 'r', color: 'b' },
         ],
         [
-          { type: 'p', color: 'b' },
-          { type: 'p', color: 'b' },
-          { type: 'p', color: 'b' },
-          { type: 'p', color: 'b' },
-          { type: 'p', color: 'b' },
-          { type: 'p', color: 'b' },
-          { type: 'p', color: 'b' },
-          { type: 'p', color: 'b' },
+          { square: 'a7', type: 'p', color: 'b' },
+          { square: 'b7', type: 'p', color: 'b' },
+          { square: 'c7', type: 'p', color: 'b' },
+          { square: 'd7', type: 'p', color: 'b' },
+          { square: 'e7', type: 'p', color: 'b' },
+          { square: 'f7', type: 'p', color: 'b' },
+          { square: 'g7', type: 'p', color: 'b' },
+          { square: 'h7', type: 'p', color: 'b' },
         ],
         [null, null, null, null, null, null, null, null],
         [null, null, null, null, null, null, null, null],
         [null, null, null, null, null, null, null, null],
         [null, null, null, null, null, null, null, null],
         [
-          { type: 'p', color: 'w' },
-          { type: 'p', color: 'w' },
-          { type: 'p', color: 'w' },
-          { type: 'p', color: 'w' },
-          { type: 'p', color: 'w' },
-          { type: 'p', color: 'w' },
-          { type: 'p', color: 'w' },
-          { type: 'p', color: 'w' },
+          { square: 'a2', type: 'p', color: 'w' },
+          { square: 'b2', type: 'p', color: 'w' },
+          { square: 'c2', type: 'p', color: 'w' },
+          { square: 'd2', type: 'p', color: 'w' },
+          { square: 'e2', type: 'p', color: 'w' },
+          { square: 'f2', type: 'p', color: 'w' },
+          { square: 'g2', type: 'p', color: 'w' },
+          { square: 'h2', type: 'p', color: 'w' },
         ],
         [
-          { type: 'r', color: 'w' },
-          { type: 'n', color: 'w' },
-          { type: 'b', color: 'w' },
-          { type: 'q', color: 'w' },
-          { type: 'k', color: 'w' },
-          { type: 'b', color: 'w' },
-          { type: 'n', color: 'w' },
-          { type: 'r', color: 'w' },
+          { square: 'a1', type: 'r', color: 'w' },
+          { square: 'b1', type: 'n', color: 'w' },
+          { square: 'c1', type: 'b', color: 'w' },
+          { square: 'd1', type: 'q', color: 'w' },
+          { square: 'e1', type: 'k', color: 'w' },
+          { square: 'f1', type: 'b', color: 'w' },
+          { square: 'g1', type: 'n', color: 'w' },
+          { square: 'h1', type: 'r', color: 'w' },
         ],
       ],
     },
@@ -2857,75 +2942,75 @@ describe('Board Tests', () => {
       fen: 'r3k2r/ppp2p1p/2n1p1p1/8/2B2P1q/2NPb1n1/PP4PP/R2Q3K w kq - 0 8',
       board: [
         [
-          { type: 'r', color: 'b' },
+          { square: 'a8', type: 'r', color: 'b' },
           null,
           null,
           null,
-          { type: 'k', color: 'b' },
+          { square: 'e8', type: 'k', color: 'b' },
           null,
           null,
-          { type: 'r', color: 'b' },
+          { square: 'h8', type: 'r', color: 'b' },
         ],
         [
-          { type: 'p', color: 'b' },
-          { type: 'p', color: 'b' },
-          { type: 'p', color: 'b' },
+          { square: 'a7', type: 'p', color: 'b' },
+          { square: 'b7', type: 'p', color: 'b' },
+          { square: 'c7', type: 'p', color: 'b' },
           null,
           null,
-          { type: 'p', color: 'b' },
+          { square: 'f7', type: 'p', color: 'b' },
           null,
-          { type: 'p', color: 'b' },
+          { square: 'h7', type: 'p', color: 'b' },
         ],
         [
           null,
           null,
-          { type: 'n', color: 'b' },
+          { square: 'c6', type: 'n', color: 'b' },
           null,
-          { type: 'p', color: 'b' },
+          { square: 'e6', type: 'p', color: 'b' },
           null,
-          { type: 'p', color: 'b' },
+          { square: 'g6', type: 'p', color: 'b' },
           null,
         ],
         [null, null, null, null, null, null, null, null],
         [
           null,
           null,
-          { type: 'b', color: 'w' },
+          { square: 'c4', type: 'b', color: 'w' },
           null,
           null,
-          { type: 'p', color: 'w' },
+          { square: 'f4', type: 'p', color: 'w' },
           null,
-          { type: 'q', color: 'b' },
+          { square: 'h4', type: 'q', color: 'b' },
         ],
         [
           null,
           null,
-          { type: 'n', color: 'w' },
-          { type: 'p', color: 'w' },
-          { type: 'b', color: 'b' },
+          { square: 'c3', type: 'n', color: 'w' },
+          { square: 'd3', type: 'p', color: 'w' },
+          { square: 'e3', type: 'b', color: 'b' },
           null,
-          { type: 'n', color: 'b' },
+          { square: 'g3', type: 'n', color: 'b' },
           null,
         ],
         [
-          { type: 'p', color: 'w' },
-          { type: 'p', color: 'w' },
+          { square: 'a2', type: 'p', color: 'w' },
+          { square: 'b2', type: 'p', color: 'w' },
           null,
           null,
           null,
           null,
-          { type: 'p', color: 'w' },
-          { type: 'p', color: 'w' },
+          { square: 'g2', type: 'p', color: 'w' },
+          { square: 'h2', type: 'p', color: 'w' },
         ],
         [
-          { type: 'r', color: 'w' },
+          { square: 'a1', type: 'r', color: 'w' },
           null,
           null,
-          { type: 'q', color: 'w' },
+          { square: 'd1', type: 'q', color: 'w' },
           null,
           null,
           null,
-          { type: 'k', color: 'w' },
+          { square: 'h1', type: 'k', color: 'w' },
         ],
       ],
     },
@@ -2969,6 +3054,30 @@ describe('Parse PGN Headers', () => {
     const chess = new Chess()
     chess.load_pgn(pgn.join('\n'))
     expect(chess.header()['Date']).toBe('1972.01.07')
+  })
+})
+
+describe('ASCII Board', () => {
+  it('Draws an ASCII board', () => {
+    const output = [
+      '   +------------------------+',
+      ' 8 | r  .  .  .  .  r  k  . |',
+      ' 7 | .  .  .  .  n  q  p  p |',
+      ' 6 | .  p  .  p  .  .  .  . |',
+      ' 5 | .  .  p  P  p  p  .  . |',
+      ' 4 | b  P  P  .  P  .  .  . |',
+      ' 3 | R  .  B  .  N  Q  .  . |',
+      ' 2 | P  .  .  .  .  P  P  P |',
+      ' 1 | .  R  .  .  .  .  K  . |',
+      '   +------------------------+',
+      '     a  b  c  d  e  f  g  h',
+    ]
+
+    const chess = new Chess(
+      'r4rk1/4nqpp/1p1p4/2pPpp2/bPP1P3/R1B1NQ2/P4PPP/1R4K1 w - - 0 28'
+    )
+
+    expect(chess.ascii()).toBe(output.join('\n'))
   })
 })
 
@@ -3181,6 +3290,52 @@ describe('Regression Tests', () => {
     const chess = new Chess()
     chess.load_pgn('1. e4 d5 2. Nf3 Nd7 3. Bb5 Nf6 4. O-O')
     expect(chess.pgn()).toBe('1. e4 d5 2. Nf3 Nd7 3. Bb5 Nf6 4. O-O')
+  })
+
+  it('Github Issue #321 - strict parser should always run before sloppy', () => {
+    let chess = new Chess()
+    // these test examples are lifted from the github issue
+    chess.load('r4rk1/4nqpp/1p1p4/2pPpp2/bPP1P3/R1B1NQ2/P4PPP/1R4K1 w - - 0 28')
+    expect(chess.move('bxc5')).not.toBeNull()
+
+    chess.load('r4rk1/4nqpp/1p1p4/2pPpp2/bPP1P3/R1B1NQ2/P4PPP/1R4K1 w - - 0 28')
+    expect(chess.move('bxc5', { sloppy: true })).not.toBeNull()
+
+    // over-disambiguation without sloppy should fail
+    chess.load(
+      'rnbqk2r/p1pp1ppp/1p2pn2/8/1bPP4/2N1P3/PP3PPP/R1BQKBNR w KQkq - 0 5'
+    )
+    expect(chess.move('Nge2')).toBeNull()
+
+    // over-disambiguation with sloppy should pass
+    chess.load(
+      'rnbqk2r/p1pp1ppp/1p2pn2/8/1bPP4/2N1P3/PP3PPP/R1BQKBNR w KQkq - 0 5'
+    )
+    expect(chess.move('Nge2', { sloppy: true })).not.toBeNull()
+  })
+
+  it('Github Issue #326a - ignore whitespace after header tag (load_pgn)', () => {
+    let chess = new Chess()
+    const pgn = `
+    [white "player a"]
+         [black "player b"]
+              [note "whitespace after right bracket"]      
+
+            1. e4 e5`
+
+    expect(chess.load_pgn(pgn)).toBe(true)
+  })
+
+  it('Github Issue #326b - ignore whitespace in line after header (load_pgn)', () => {
+    let chess = new Chess()
+    const pgn = `
+    [white "player a"]
+         [black "player b"]
+              [note "whitespace after right bracket and in empty line below"]      
+   
+            1. e4 e5`
+
+    expect(chess.load_pgn(pgn)).toBe(true)
   })
 })
 
