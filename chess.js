@@ -670,7 +670,7 @@ export const Chess = function (fen) {
       typeof squareArr === 'undefined' ||
       !Array.isArray(squareArr) ||
       squareArr.find(function (sq) {
-        return !(sq in SQUARES)
+        return !(sq in SQUARE_MAP)
       })
     ) {
       obstacles = []
@@ -682,7 +682,7 @@ export const Chess = function (fen) {
     copy_board = [...board]
 
     for (var i = 0, len = obstacles.length; i < len; i++) {
-      var sq = SQUARES[obstacles[i]]
+      var sq = SQUARE_MAP[obstacles[i]]
       copy_board[sq] = { type: 'obstacle', color: 'obstacle' }
     }
 
@@ -690,12 +690,12 @@ export const Chess = function (fen) {
   }
 
   function remove_obstacle(square) {
-    if (typeof square !== 'string' || !(square in SQUARES)) return false
+    if (typeof square !== 'string' || !(square in SQUARE_MAP)) return false
 
     obstacles = obstacles.filter(function (obstacle) {
       return obstacle !== square
     })
-    copy_board[SQUARES[square]] = null
+    copy_board[SQUARE_MAP[square]] = null
 
     return true
   }
@@ -912,7 +912,7 @@ export const Chess = function (fen) {
     function add_move(board, moves, from, to, flags) {
       /* if pawn promotion */
       var obstacle = obstacles.find(function (obstacle) {
-        return SQUARES[obstacle] === to
+        return SQUARE_MAP[obstacle] === to
       })
 
       if (!obstacle) {
@@ -938,8 +938,8 @@ export const Chess = function (fen) {
     var them = pieces_count === 1 ? piece_orientation : swap_color(us)
     var second_rank = { b: RANK_7, w: RANK_2 }
 
-    var first_sq = SQUARES.a8
-    var last_sq = SQUARES.h1
+    var first_sq = SQUARE_MAP.a8
+    var last_sq = SQUARE_MAP.h1
     var single_square = false
 
     /* do we want legal moves? */
@@ -957,8 +957,8 @@ export const Chess = function (fen) {
 
     /* are we generating moves for a single square? */
     if (typeof options !== 'undefined' && 'square' in options) {
-      if (options.square in SQUARES) {
-        first_sq = last_sq = SQUARES[options.square]
+      if (options.square in SQUARE_MAP) {
+        first_sq = last_sq = SQUARE_MAP[options.square]
         single_square = true
       } else {
         /* invalid square */
@@ -986,7 +986,6 @@ export const Chess = function (fen) {
       if (piece.type === PAWN && (piece_type === true || piece_type === PAWN)) {
         /* single square, non-capturing */
         var square = i + PAWN_OFFSETS[us][0]
-
         if (copy_board[square] == null) {
           add_move(copy_board, copy_moves, i, square, BITS.NORMAL)
           add_move(board, moves, i, square, BITS.NORMAL)
@@ -1586,9 +1585,7 @@ export const Chess = function (fen) {
   /* pretty = external move object */
   function make_pretty_with_obstacles(ugly_move) {
     var move = clone(ugly_move)
-
     move.san = move_to_san(move, generate_moves_with_obstacles({ legal: true }))
-
     move.to = algebraic(move.to)
     move.from = algebraic(move.from)
 
